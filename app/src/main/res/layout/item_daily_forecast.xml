@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_daily_card"
+    android:paddingStart="14dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <!-- Day -->
+    <TextView
+        android:id="@+id/tvForecastTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Monday"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvForecastIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_weight="1" />
+
+    <TextView
+        android:layout_width="58dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvForecastDate"
+        android:text="Oct 20"
+        android:textColor="#9DB9E8"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/tvForecastTime"
+        app:layout_constraintTop_toBottomOf="@+id/tvForecastTime"/>
+    <!-- Weather icon -->
+    <TextView
+        android:id="@+id/tvForecastIcon"
+        android:layout_width="42dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:text="☀️"
+        android:textSize="25sp"
+        app:layout_constraintStart_toEndOf="@id/tvForecastTime"
+        app:layout_constraintEnd_toStartOf="@id/tvRainChance"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvForecastDescription"
+        android:layout_marginStart="10dp"
+        android:maxLines="1"
+        android:textSize="14sp"
+        android:text="Sunny"
+        android:layout_marginTop="10dp"
+        android:ellipsize="end"
+        android:textColor="#D9E6FF"
+        app:layout_constraintStart_toEndOf="@+id/tvForecastIcon"
+        app:layout_constraintEnd_toStartOf="@id/tvForecastTemperature"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Rain chance -->
+    <TextView
+        android:id="@+id/tvRainChance"
+        android:layout_width="42dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:text="💧 10%"
+        android:layout_marginTop="20dp"
+        android:textColor="#79C8FF"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@id/tvForecastIcon"
+        app:layout_constraintEnd_toStartOf="@id/tvForecastTemperature"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- High / low temperatures -->
+    <TextView
+        android:id="@+id/tvForecastTemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="32° / 24°"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="20dp"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/tvForecastArrow"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:layout_width="18dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvForecastArrow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="5dp"
+        android:gravity="center"
+        android:text="›"
+        android:textColor="#91B8FF"
+        android:textSize="30sp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

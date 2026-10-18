@@ -1,0 +1,15 @@
+package com.example.weatherapp.data
+
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+object GeocodingClient {
+
+    val api: GeocodingApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://geocoding-api.open-meteo.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(GeocodingApiService::class.java)
+    }
+}
