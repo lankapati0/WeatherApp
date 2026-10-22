@@ -16,13 +16,18 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.ViewModel.WeatherViewModel
+import com.example.weatherapp.data.Room.SelectedLocation
+import com.example.weatherapp.data.Room.SelectedLocationRepository
+import com.example.weatherapp.data.Room.WeatherDatabase
 import com.example.weatherapp.utils.AqiUtils
 import com.example.weatherapp.databinding.FragmentWeatherBinding
 import com.example.weatherapp.ui.adapter.ForecastCardAdapter
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import kotlinx.coroutines.launch
 
 class WeatherFragment: Fragment() {
     private var _binding: FragmentWeatherBinding? = null
@@ -31,6 +36,10 @@ class WeatherFragment: Fragment() {
     private lateinit var dailyAdapter: ForecastCardAdapter
     private val viewModel: WeatherViewModel by activityViewModels()
     private val weatherViewModel: WeatherViewModel by activityViewModels()
+    private val selectedLocationRepository by lazy {
+        val database = WeatherDatabase.getDatabase(requireContext())
+        SelectedLocationRepository(database.selectedLocationDao())
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -144,6 +153,20 @@ class WeatherFragment: Fragment() {
                     latitude = latitude,
                     longitude = longitude
                 )
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val database = WeatherDatabase.getDatabase(requireContext())
+                    val repository = SelectedLocationRepository(database.selectedLocationDao())
+
+                    repository.saveSelectedLocation(
+                        SelectedLocation(
+                     id=1,
+                            cityName = cityName,
+                            latitude = latitude,
+                            longitude = longitude,
+                            locationType = "CITY"
+                        )
+                    )
+                }
 
                 handle.remove<Double>("selected_latitude")
                 handle.remove<Double>("selected_longitude")
@@ -195,6 +218,17 @@ class WeatherFragment: Fragment() {
         binding.tvLocation.setOnClickListener {
             viewModel.loadWeather(22.3215099,
                 73.1277504)
+            viewLifecycleOwner.lifecycleScope.launch {
+                selectedLocationRepository.saveSelectedLocation(
+                    SelectedLocation(
+                        id = 1,
+                        cityName = "Vadodara",
+                        latitude = 22.3215099,
+                        longitude = 73.1277504,
+                        locationType = "CITY"
+                    )
+                )
+            }
         }
 
         binding.weatherBottomSheet.tvHourlyForecast.setOnClickListener {

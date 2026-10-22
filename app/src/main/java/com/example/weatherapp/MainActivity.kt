@@ -23,7 +23,6 @@ import com.example.weatherapp.ViewModel.WeatherViewModel
 import com.example.weatherapp.data.Room.SelectedLocation
 import com.example.weatherapp.data.Room.SelectedLocationRepository
 import com.example.weatherapp.data.Room.WeatherDatabase
-import com.example.weatherapp.data.datastore.LocationStore
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.databinding.BottomNavigationBinding
 import com.google.android.gms.common.api.ResolvableApiException
