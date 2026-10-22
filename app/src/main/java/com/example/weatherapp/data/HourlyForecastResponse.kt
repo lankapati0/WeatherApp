@@ -12,6 +12,9 @@ data class HourlyForecastResponse(
     val precipitationProbabilities:List<Int>,
 
     @SerializedName("weather_code")
-    val weatherCodes:List<Int>
+    val weatherCodes:List<Int>,
+
+    @SerializedName("rain")
+    val rainfall:List<Double>
 
 )

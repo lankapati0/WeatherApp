@@ -13,4 +13,10 @@
         android:id="@+id/forecastFragment"
         android:label="Forecast"
         android:name="com.example.weatherapp.ForecastFragment"/>
+
+    <fragment
+        android:id="@+id/weatherListFragment"
+        android:label="WeatherList"
+        android:name="com.example.weatherapp.WeatherListFragment"/>
+
 </navigation>

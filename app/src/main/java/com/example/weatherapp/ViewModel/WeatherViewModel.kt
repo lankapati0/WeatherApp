@@ -43,28 +43,65 @@ class WeatherViewModel: ViewModel() {
     private var selectedLongitude = 73.1277504
     private var selectedCity = "Vadodara"
 
+    private val _airQuality = MutableLiveData<Int>()
+    val airQuality: MutableLiveData<Int> = _airQuality
+
+    private val _uvIndex = MutableLiveData<Double>()
+    val uvIndex: MutableLiveData<Double> = _uvIndex
+
+    private val _rainfall = MutableLiveData<Double>()
+    val rainFall: MutableLiveData<Double> = _rainfall
+
+    private val _sunrise = MutableLiveData<String>()
+    val sunrise : MutableLiveData<String> = _sunrise
+
+    private val _sunset = MutableLiveData<String>()
+    val sunset : MutableLiveData<String> = _sunset
+
+    private val _dailyMaxUv = MutableLiveData<Double>()
+    val dailyMaxUv: LiveData<Double> = _dailyMaxUv
+
+    private val _dailyRainfall = MutableLiveData<Double>()
+    val dailyRainfall: LiveData<Double> = _dailyRainfall
+
+    private val _maxWindSpeed = MutableLiveData<Double>()
+    val maxWindSpeed: LiveData<Double> = _maxWindSpeed
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun loadWeather(){
+    fun loadWeather(latitude:Double, longitude:Double){
         viewModelScope.launch {
             _error.value = null
             try {
-                val response = repository.getWeatherResponse(selectedLatitude,selectedLongitude)
+                Log.d("WeatherDebug", "Loading weather: $latitude, $longitude")
+
+                val response = repository.getWeatherResponse(latitude,longitude)
+                Log.d(
+                    "WeatherDebug",
+                    "Weather API success. Daily records: ${response.daily.time.size}"
+                )
+                val airQualityResponse = repository.getAirquality(latitude,longitude)
+                Log.d("WeatherDebug", "Air quality API success")
                 val current1 = response.current
                 val daily = response.daily
-//                _weather.value = repository.getCurrentWeather(
-//                    latitude = 22.3215099,
-//                    longitude = 73.1277504
-//                )
-                _weather.value = CurrentWeather(selectedCity,
+               _weather.value = CurrentWeather(selectedCity,
                     current1.temperature,
                     current1.feelsLike,
                     current1.humidity,
-                    current1.windSpeed
-
+                    current1.windSpeed,
+                    current1.windDirection
                 )
 
-                _weatherDescription.value = WeatherUtils.weatherDescription(current1.weatherCode)
+                _airQuality.value = airQualityResponse.current.usAqi
+                val desc = WeatherUtils.weatherDescription(current1.weatherCode)
+
+                _weatherDescription.value = desc.description.toString()
+                _uvIndex.value = current1.uvIndex
+                _rainfall.value = current1.rain
+                _sunrise.value = WeatherUtils.formatSunTime(daily.sunrise[0])
+                _sunset.value = WeatherUtils.formatSunTime(daily.sunset[0])
+                _dailyMaxUv.value = daily.uvIndexMax[0]
+                _dailyRainfall.value = daily.rainSum[0]
+                _maxWindSpeed.value = daily.maxWindSpeeds[0]
 
                 _highLow.value =  "H: ${daily.maxTemperatures[0].toInt()}°   " +
                         "L: ${daily.minTemperatures[0].toInt()}°"
@@ -83,20 +120,34 @@ class WeatherViewModel: ViewModel() {
                     )
                 }
 
-
-
                 _dailyForecast.value = daily.time.indices.map { index ->
                     val date = daily.time[index]
                     ForecastCardItem(
                         label = WeatherUtils.formatDay(date),
                         icon = WeatherUtils.getWeatherIcon(daily.weatherCodes[index]),
                         detail = WeatherUtils.formatDate(date),
-                        temperature = "\${daily.maxTemperatures[index].toInt()}° / \${daily.minTemperatures[index].toInt()}°"
+                        temperature = "${daily.maxTemperatures[index].toInt()}° / ${daily.minTemperatures[index].toInt()}°"
 
                     )
+
+                }
+                Log.d(
+                    "WeatherDebug",
+                    "Daily forecast created: ${_dailyForecast.value?.size} items"
+                )
+
+                val hourly1 = response.hourly
+                val lastHourIndex = hourly1.time.indexOfLast { timing ->
+                    timing <= current1.time
+                }
+
+                if(lastHourIndex >= 0){
+                    val lastHourData = hourly1.rainfall[lastHourIndex]
+                    _rainfall.value = lastHourData
                 }
 
             } catch (exception: Exception){
+                Log.e("WeatherDebug", "loadWeather failed", exception)
                 _error.value = exception.message ?: "Unable to load weather"
             }
         }
@@ -125,7 +176,8 @@ class WeatherViewModel: ViewModel() {
                 selectedLongitude = city.longitude
                 selectedCity = city.name
 
-                loadWeather()
+                loadWeather(selectedLatitude,selectedLongitude)
+
             } catch (exception: Exception){
                 Log.e("WeatherApp", "City search failed", exception)
 
@@ -135,8 +187,3 @@ class WeatherViewModel: ViewModel() {
         }
     }
 }
-
-
-
-
-

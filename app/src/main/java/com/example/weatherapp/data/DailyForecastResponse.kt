@@ -15,5 +15,24 @@ data class DailyForecastResponse(
     val precipitationProbabilities: List<Int>,
 
     @SerializedName("weather_code")
-    val weatherCodes: List<Int>
+    val weatherCodes: List<Int>,
+
+    @SerializedName("uv_index_max")
+    val uvIndexMax: List<Double>,
+
+    val sunrise: List<String>,
+
+    val sunset: List<String>,
+
+    @SerializedName("precipitation_sum")
+    val precipitationSum: List<Double>,
+
+    @SerializedName("rain_sum")
+    val rainSum: List<Double>,
+
+    @SerializedName("wind_speed_10m_max")
+    val maxWindSpeeds: List<Double>,
+
+    @SerializedName("wind_direction_10m_dominant")
+    val dominantWindDirections: List<Double>
 )

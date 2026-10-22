@@ -25,6 +25,15 @@ class CurrentWeatherResponse(
     @SerializedName("weather_code")
     val weatherCode: Int,
 
+    @SerializedName("wind_direction_10m")
+    val windDirection: Double,
+
+    @SerializedName("uv_index")
+    val uvIndex: Double,
+
+    @SerializedName("rain")
+    val rain: Double,
+
     val time: String
 )
 

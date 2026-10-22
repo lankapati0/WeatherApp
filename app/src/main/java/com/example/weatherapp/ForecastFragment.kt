@@ -51,10 +51,10 @@ class ForecastFragment: Fragment() {
 
         binding.rvForecastHourly.adapter = hourlyAdapter
 
-        binding.rvForecastDaily.layoutManager = LinearLayoutManager(requireContext(),
+        binding.rvForecastWeekly.layoutManager = LinearLayoutManager(requireContext(),
             LinearLayoutManager.VERTICAL,false)
 
-        binding.rvForecastDaily.adapter = dailyAdapter
+        binding.rvForecastWeekly.adapter = dailyAdapter
     }
 
     private fun observeForecastData(){

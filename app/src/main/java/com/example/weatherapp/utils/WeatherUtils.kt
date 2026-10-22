@@ -2,6 +2,7 @@ package com.example.weatherapp.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.weatherapp.R
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -9,7 +10,10 @@ import java.util.Date
 import java.util.Locale
 
 object WeatherUtils {
-
+    data class WeatherInfo(
+        val description: String,
+        val iconRes: Int
+    )
     @RequiresApi(Build.VERSION_CODES.O)
     fun formatDate(dateString: String): String {
         return try {
@@ -51,23 +55,31 @@ object WeatherUtils {
         return "💧 $probability%"
     }
 
-    fun weatherDescription(code: Int): String {
+    fun weatherDescription(code: Int): WeatherInfo {
         return when (code) {
-            0 -> "Clear Sky"
-            1 -> "Mainly Clear"
-            2 -> "Partly Cloudy"
-            3 -> "Overcast"
-            45, 48 -> "Foggy"
-            51, 53, 55 -> "Drizzle"
-            56, 57 -> "Freezing Drizzle"
-            61, 63, 65 -> "Rain"
-            66, 67 -> "Freezing Rain"
-            71, 73, 75, 77 -> "Snow"
-            80, 81, 82 -> "Rain Showers"
-            85, 86 -> "Snow Showers"
-            95 -> "Thunderstorm"
-            96, 99 -> "Thunderstorm with Hail"
-            else -> "Unknown"
+            0 -> WeatherInfo("Clear Sky", R.drawable.ic_sun_cloud_angled_rain)
+
+            1 -> WeatherInfo("Mainly Clear", R.drawable.ic_sun_cloud_angled_rain)
+            2, 3 -> WeatherInfo("Partly Cloudy", R.drawable.ic_moon_cloud_fast_wind)
+
+            45, 48 -> WeatherInfo("Foggy", R.drawable.ic_moon_cloud_fast_wind)
+
+            51, 53, 55, 56, 57 ->
+                WeatherInfo("Drizzle", R.drawable.ic_moon_cloud_mid_rain)
+
+            61, 63, 65, 66, 67 ->
+                WeatherInfo("Rain", R.drawable.ic_moon_cloud_mid_rain)
+
+            71, 73, 75, 77, 85, 86 ->
+                WeatherInfo("Snow", R.drawable.ic_moon_cloud_fast_wind)
+
+            80, 81, 82 ->
+                WeatherInfo("Rain Showers", R.drawable.ic_sun_cloud_angled_rain)
+
+            95, 96, 99 ->
+                WeatherInfo("Thunderstorm", R.drawable.ic_tornado)
+
+            else -> WeatherInfo("Unknown", R.drawable.ic_moon_cloud_fast_wind)
         }
 
     }
@@ -83,5 +95,16 @@ object WeatherUtils {
         } catch (e: Exception) {
             value
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatSunTime(dateTime: String): String {
+        val inputFormatter =
+            java.time.LocalDateTime.parse(dateTime)
+
+        val outputFormatter =
+            java.time.format.DateTimeFormatter.ofPattern("h:mm a")
+
+        return inputFormatter.format(outputFormatter)
     }
 }

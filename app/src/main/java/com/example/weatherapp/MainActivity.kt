@@ -1,25 +1,35 @@
 package com.example.weatherapp
 
+import android.Manifest
 import android.app.AlertDialog
+import android.content.pm.PackageManager
+import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.EditText
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.ViewModel.WeatherViewModel
+import com.example.weatherapp.data.datastore.LocationStore
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.databinding.BottomNavigationBinding
-import com.example.weatherapp.ui.adapter.ForecastCardAdapter
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,15 +37,67 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var bottomBinding: BottomNavigationBinding
 
+    private val locationStore by lazy {
+        LocationStore(applicationContext)
+    }
+
     init {
         Log.d("WeatherDebug", "WeatherViewModel created")
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val locationPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+
+            val granted =
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                        permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+            if (granted) {
+                checkLocationSettings()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Permission not granted!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val locationSettingsLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) {
+            // Check again after the user returns from Settings.
+            getCurrentLocation()
+        }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        lifecycleScope.launch {
+            val coordinates = locationStore.savedCoordinates.first()
+
+            if (coordinates != null) {
+                val (latitude, longitude) = coordinates
+                viewModel.loadWeather(latitude, longitude)
+
+                Log.d(
+                    "WeatherDebug",
+                    "Loading saved location: $latitude, $longitude"
+                )
+            } else {
+                viewModel.loadWeather(22.3215099, 73.1277504)
+            }
+        }
+
 
         bottomBinding = BottomNavigationBinding.bind(
             findViewById(R.id.bottomNavigation)
@@ -45,16 +107,38 @@ class MainActivity : AppCompatActivity() {
         }
 
         bottomBinding.ivLocation.setOnClickListener {
-            findNavController(R.id.navHostFragment)
-                .navigate(R.id.weatherFragment)
+/*            findNavController(R.id.navHostFragment)
+                .navigate(R.id.weatherFragment)*/
+            val hasFineLocation = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            val hasCoarseLocation = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasFineLocation || hasCoarseLocation) {
+                checkLocationSettings()
+            } else {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
         }
+
 
         bottomBinding.btnForecastList.setOnClickListener {
             findNavController(R.id.navHostFragment)
-                .navigate(R.id.forecastFragment)
+                .navigate(R.id.weatherListFragment)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showCitySearchDialog(){
         val input = EditText(this).apply {
             hint = "Enter city name"
@@ -81,5 +165,92 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getCurrentLocation(){
+        val fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this)
+
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation && !hasCoarseLocation) {
+            return
+        }
+
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY,
+            CancellationTokenSource().token
+        ).addOnSuccessListener { location: Location? ->
+            if (location != null) {
+
+                val latitude = location.latitude
+                val longitude = location.longitude
+                lifecycleScope.launch {
+                    locationStore.saveCoordinates(latitude,longitude)
+                    viewModel.loadWeather(latitude, longitude)
+                }
+
+            } else {
+                Toast.makeText(
+                    this,
+                    "Unable to get location. Try again.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }.addOnFailureListener { error ->
+
+            Toast.makeText(this,"Location error:${error.message}", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun checkLocationSettings(){
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,10000L).build()
+
+        val settingsRequest = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+            .setAlwaysShow(true)
+            .build()
+
+        LocationServices.getSettingsClient(this)
+            .checkLocationSettings(settingsRequest)
+            .addOnSuccessListener {
+                getCurrentLocation()
+            }.addOnFailureListener { exception ->
+                if (exception is ResolvableApiException) {
+                    try {
+                        val request = IntentSenderRequest.Builder(
+                            exception.resolution
+                        ).build()
+
+                        locationSettingsLauncher.launch(request)
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this,
+                            "Please enable Location in phone settings.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Please enable Location in phone settings.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            }
+
+
+
     }
 }

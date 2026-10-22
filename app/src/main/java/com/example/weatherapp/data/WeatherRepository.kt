@@ -14,7 +14,8 @@ class WeatherRepository {
             temperature = response.current.temperature,
             feelsLike = response.current.feelsLike,
             humidity = response.current.humidity,
-            windSpeed = response.current.windSpeed
+            windSpeed = response.current.windSpeed,
+            windDirection = response.current.windDirection
         )
     }
 
@@ -24,6 +25,13 @@ class WeatherRepository {
     ): WeatherApiResponse {
         return RetrofitClient.weatherApi.getCurrentWeather(
             latitude,longitude
+        )
+    }
+
+    suspend fun getAirquality(latitude: Double,longitude: Double): AirQualityResponse {
+        return RetrofitClient.airQualityApi.getAirQuality(
+            latitude = latitude,
+            longitude = longitude
         )
     }
 

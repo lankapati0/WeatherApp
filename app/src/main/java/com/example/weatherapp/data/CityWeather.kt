@@ -1,8 +1,8 @@
 package com.example.weatherapp.data
 
-data class CityLocation(
-    val name: String,
+data class CityWeather(
+    val cityName: String,
     val latitude: Double,
     val longitude: Double,
-    val country: String
+    val weather: WeatherApiResponse
 )
