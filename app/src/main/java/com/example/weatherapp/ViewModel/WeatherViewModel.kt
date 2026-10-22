@@ -28,8 +28,6 @@ class WeatherViewModel: ViewModel() {
 
     private val _hourlyForecast = MutableLiveData<List<ForecastCardItem>>()
     val hourlyForecast = _hourlyForecast
-
-
     private val _weatherDescription = MutableLiveData<String>()
     val weatherDescription: LiveData<String> = _weatherDescription
 
@@ -72,15 +70,10 @@ class WeatherViewModel: ViewModel() {
         viewModelScope.launch {
             _error.value = null
             try {
-                Log.d("WeatherDebug", "Loading weather: $latitude, $longitude")
-
                 val response = repository.getWeatherResponse(latitude,longitude)
-                Log.d(
-                    "WeatherDebug",
-                    "Weather API success. Daily records: ${response.daily.time.size}"
-                )
+
                 val airQualityResponse = repository.getAirquality(latitude,longitude)
-                Log.d("WeatherDebug", "Air quality API success")
+
                 val current1 = response.current
                 val daily = response.daily
                _weather.value = CurrentWeather(selectedCity,
@@ -131,10 +124,6 @@ class WeatherViewModel: ViewModel() {
                     )
 
                 }
-                Log.d(
-                    "WeatherDebug",
-                    "Daily forecast created: ${_dailyForecast.value?.size} items"
-                )
 
                 val hourly1 = response.hourly
                 val lastHourIndex = hourly1.time.indexOfLast { timing ->
@@ -147,10 +136,22 @@ class WeatherViewModel: ViewModel() {
                 }
 
             } catch (exception: Exception){
-                Log.e("WeatherDebug", "loadWeather failed", exception)
                 _error.value = exception.message ?: "Unable to load weather"
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun selectCity(
+        cityName: String,
+        latitude: Double,
+        longitude: Double
+    ){
+        selectedCity = cityName
+        selectedLatitude = latitude
+        selectedLongitude = longitude
+
+        loadWeather(latitude,longitude)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

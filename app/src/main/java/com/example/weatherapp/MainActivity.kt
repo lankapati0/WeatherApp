@@ -3,6 +3,7 @@ package com.example.weatherapp
 import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +20,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.example.weatherapp.ViewModel.WeatherViewModel
+import com.example.weatherapp.data.Room.SelectedLocation
+import com.example.weatherapp.data.Room.SelectedLocationRepository
+import com.example.weatherapp.data.Room.WeatherDatabase
 import com.example.weatherapp.data.datastore.LocationStore
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.databinding.BottomNavigationBinding
@@ -28,8 +32,11 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,12 +44,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var bottomBinding: BottomNavigationBinding
 
-    private val locationStore by lazy {
-        LocationStore(applicationContext)
-    }
-
-    init {
-        Log.d("WeatherDebug", "WeatherViewModel created")
+    private val selectedLocationRepository by lazy {
+        val database = WeatherDatabase.getDatabase(applicationContext)
+        SelectedLocationRepository(database.selectedLocationDao())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -83,18 +87,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            val coordinates = locationStore.savedCoordinates.first()
+            val coordinates = selectedLocationRepository.getSelectedLocation()
+                .first()
 
             if (coordinates != null) {
-                val (latitude, longitude) = coordinates
-                viewModel.loadWeather(latitude, longitude)
-
-                Log.d(
-                    "WeatherDebug",
-                    "Loading saved location: $latitude, $longitude"
-                )
+                viewModel.selectCity(cityName = coordinates.cityName,latitude=coordinates.latitude,longitude= coordinates.longitude)
             } else {
-                viewModel.loadWeather(22.3215099, 73.1277504)
+                viewModel.selectCity("Vadodara",22.3215099, 73.1277504)
             }
         }
 
@@ -194,10 +193,31 @@ class MainActivity : AppCompatActivity() {
                 val latitude = location.latitude
                 val longitude = location.longitude
                 lifecycleScope.launch {
-                    locationStore.saveCoordinates(latitude,longitude)
-                    viewModel.loadWeather(latitude, longitude)
-                }
 
+                    val cityName = withContext(Dispatchers.IO){
+                        try {
+                            val geocoder = Geocoder(this@MainActivity, Locale.getDefault())
+
+                            @Suppress("DEPRECATION")
+                            geocoder.getFromLocation(latitude, longitude, 1)
+                                ?.firstOrNull()
+                                ?.let { address ->
+                                    address.subLocality
+                                        ?: address.locality
+                                        ?: address.subAdminArea
+                                        ?: address.adminArea
+                                }
+                        } catch (e: Exception){
+                            null
+                        }
+                    }?:"Current Location"
+
+                    val currentLocation = SelectedLocation(cityName=cityName,latitude=latitude, longitude = longitude,locationType="DEVICE")
+
+                    selectedLocationRepository.saveSelectedLocation(currentLocation)
+
+                    viewModel.selectCity(currentLocation.cityName,currentLocation.latitude, currentLocation.longitude)
+                }
             } else {
                 Toast.makeText(
                     this,
@@ -247,10 +267,6 @@ class MainActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-
             }
-
-
-
     }
 }

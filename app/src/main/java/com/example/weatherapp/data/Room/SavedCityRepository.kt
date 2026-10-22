@@ -17,3 +17,18 @@ class SavedCityRepository(
         savedCityDao.deleteCity(latitude,longitude)
     }
 }
+
+class SelectedLocationRepository(
+    private val selectedLocationDao: SelectedLocationDao
+){
+    fun getSelectedLocation(): Flow<SelectedLocation?>{
+        return selectedLocationDao.getSelectedLocation()
+    }
+
+    suspend fun saveSelectedLocation(location: SelectedLocation){
+        selectedLocationDao.saveSelectedLocation(location)
+    }
+
+
+
+}

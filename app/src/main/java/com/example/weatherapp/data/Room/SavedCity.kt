@@ -1,8 +1,7 @@
 package com.example.weatherapp.data.Room
 
-import androidx.room3.Entity
-import androidx.room3.PrimaryKey
-
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 @Entity(tableName = "saved_cities")
 data class SavedCity(
     @PrimaryKey

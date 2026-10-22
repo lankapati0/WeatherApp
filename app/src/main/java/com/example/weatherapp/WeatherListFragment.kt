@@ -62,7 +62,6 @@ class WeatherListFragment : Fragment() {
     }
     fun setupCitySuggestions() {
         searchCityAdapter = CitySuggestionAdapter { city ->
-
             // Fill the selected city name into the search box.
             binding.etSearchCity.setText(city.name)
 
@@ -80,8 +79,6 @@ class WeatherListFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = searchCityAdapter
         }
-
-
     }
 
     private fun setupWeatherCards(){
@@ -124,25 +121,10 @@ class WeatherListFragment : Fragment() {
                 Lifecycle.State.STARTED
             ) {
                 viewModel.selectedCitiesWeather.collect { cities ->
-                    Log.d(
-                        "CityWeatherDebug",
-                        "Observer received ${cities.size} cities"
-                    )
                     // cityWeatherAdapter is initialized before this runs.
                     cityWeatherAdapter.submitCities(cities)
-                    Log.d(
-                        "CityWeatherDebug",
-                        "Adapter item count: ${cityWeatherAdapter.itemCount}"
-                    )
                     binding.rvSearchCityWeather.post {
-                        Log.d(
-                            "CityWeatherDebug",
-                            "Weather RecyclerView: " +
-                                    "visibility=${binding.rvSearchCityWeather.visibility}, " +
-                                    "width=${binding.rvSearchCityWeather.width}, " +
-                                    "height=${binding.rvSearchCityWeather.height}"
-                        )
-                    }
+                }
                     binding.rvSearchCityWeather.visibility =
                         if (cities.isNotEmpty()) View.VISIBLE else View.GONE
                 }

@@ -34,8 +34,7 @@ class WeatherListViewModel(
     val error: StateFlow<String?> = _error.asStateFlow()
     private var searchJob: Job? = null
 
-    private val _selectedCityName = MutableStateFlow("")
-    val selectedCityName = _selectedCityName.asStateFlow()
+
     private val _selectedCitiesWeather =
         MutableStateFlow<List<CityWeather>>(emptyList())
 
@@ -44,15 +43,6 @@ class WeatherListViewModel(
 
     private val _loadingWeatherCities =
         MutableStateFlow<Set<String>>(emptySet())
-
-
-    val loadingWeatherCities: StateFlow<Set<String>> =
-        _loadingWeatherCities.asStateFlow()
-    private val _selectedCityWeather =
-        MutableStateFlow<WeatherApiResponse?>(null)
-
-    val selectedCityWeather = _selectedCityWeather.asStateFlow()
-
     fun searchCities(query:String){
         searchJob?.cancel()
 
@@ -94,14 +84,11 @@ class WeatherListViewModel(
         viewModelScope.launch {
             val cityKey = "$latitude,$longitude"
 
-            Log.d("CityWeatherDebug","Loading $cityKey")
 
             if (_selectedCitiesWeather.value.any {
                 it.latitude == latitude &&
-                        it.longitude == longitude
+                it.longitude == longitude
             } || cityKey in _loadingWeatherCities.value) {
-                Log.d("CityWeatherDebug", "Duplicate or already loading")
-
                 return@launch
             }
 
@@ -119,8 +106,6 @@ class WeatherListViewModel(
             }catch (e: CancellationException){
                 throw e
             } catch (e: Exception){
-                Log.e("CityWeatherDebug", "Weather API failed", e)
-
                 _error.value =  "Unable to load weather for $cityName."
             } finally {
                 _loadingWeatherCities.value =

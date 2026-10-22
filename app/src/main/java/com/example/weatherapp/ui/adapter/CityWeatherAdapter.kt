@@ -65,6 +65,9 @@ class CityWeatherAdapter(
             binding.ivTemperature.setImageResource(
                 weatherInfo.iconRes
             )
+            binding.root.setOnClickListener {
+                onCityClick(city)
+            }
 
         }
     }

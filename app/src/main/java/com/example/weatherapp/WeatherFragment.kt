@@ -63,6 +63,7 @@ class WeatherFragment: Fragment() {
 
         setupForecastLists()
         observeWeather()
+        observeSelectedCity()
         setupClickListeners()
     }
 
@@ -121,6 +122,7 @@ class WeatherFragment: Fragment() {
 
         binding.weatherBottomSheet.rvDailyForecast.adapter = dailyAdapter
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeSelectedCity() {
         val navController = findNavController()
 
@@ -137,7 +139,8 @@ class WeatherFragment: Fragment() {
                     handle.get<String>("selected_city") ?: "Selected city"
 
                 // Load weather for the tapped city here.
-                viewModel.loadWeather(
+                viewModel.selectCity(
+                    cityName = cityName,
                     latitude = latitude,
                     longitude = longitude
                 )
