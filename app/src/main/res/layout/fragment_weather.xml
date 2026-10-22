@@ -20,7 +20,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvLocation"
-            android:text="Vadodara"
             android:textColor="@color/weather_primary_text"
             android:textSize="24sp"
             android:layout_marginTop="58dp"
@@ -33,7 +32,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvTemperature"
-            android:text="--°C"
             android:textColor="@color/weather_primary_text"
             android:textSize="30sp"
             android:layout_marginTop="10dp"
@@ -47,7 +45,6 @@
             app:layout_constraintTop_toBottomOf="@+id/tvTemperature"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:text="Mostly Clear"
             android:id="@+id/tvCondition"
             android:textColor="#C8C5E8"
             android:layout_marginTop="0dp"
@@ -65,7 +62,6 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="4dp"
-            android:text="H"
             />
         <FrameLayout
             android:layout_width="0dp"

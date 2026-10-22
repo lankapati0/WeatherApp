@@ -50,7 +50,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.10.2")
     implementation("androidx.navigation:navigation-ui-ktx:2.10.2")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
-
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.room:room-runtime:2.8.5")
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")

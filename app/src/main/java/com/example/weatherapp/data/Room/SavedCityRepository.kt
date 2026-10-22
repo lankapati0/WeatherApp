@@ -29,6 +29,4 @@ class SelectedLocationRepository(
         selectedLocationDao.saveSelectedLocation(location)
     }
 
-
-
 }

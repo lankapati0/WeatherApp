@@ -13,8 +13,7 @@
         android:layout_height="80dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:id="@+id/ivTemperature"
-        android:src="@drawable/ic_moon_cloud_mid_rain"/>
+        android:id="@+id/ivTemperature"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tvTemperature"
-            android:text="35"
+
             android:layout_marginTop="20dp"
             android:textColor="@android:color/white"
             android:textSize="64sp" />
@@ -42,7 +41,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="H:24 L:18"
                 android:id="@+id/tvCardHighLow"
                 android:textColor="#EBEBF5"
                 android:textSize="14sp"
@@ -51,7 +49,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/tvCity"
-                    android:text="Vadodara"
                     android:layout_marginTop="10dp"
                     android:layout_below="@+id/tvCardHighLow"
                     android:textColor="@android:color/white"
@@ -60,7 +57,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/tvWeatherDescription"
-                    android:text="Mid Rain"
                     android:gravity="end"
                     android:textSize="16sp"
                     android:layout_marginTop="15dp"

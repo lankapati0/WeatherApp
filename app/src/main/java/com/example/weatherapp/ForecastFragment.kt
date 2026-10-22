@@ -33,6 +33,10 @@ class ForecastFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.weather.observe(viewLifecycleOwner){weather ->
+            binding.tvForecastCity.text = weather.cityName
+        }
+
         setupForecastLists()
         observeForecastData()
     }

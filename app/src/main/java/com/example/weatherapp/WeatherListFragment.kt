@@ -13,7 +13,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.ViewModel.WeatherListViewModel
 import com.example.weatherapp.ViewModel.WeatherListViewModelFactory
 import com.example.weatherapp.data.CityWeather
@@ -59,6 +61,16 @@ class WeatherListFragment : Fragment() {
         setupSearch()
         observeCities()
         observeSelectedCitiesWeather()
+        setupSwipeToDelete()
+        viewModel.refreshCitiesWeather()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.isRefreshing.collect { refreshing ->
+                    binding.swrCityWeather.isRefreshing = refreshing
+                }
+            }
+        }
     }
     fun setupCitySuggestions() {
         searchCityAdapter = CitySuggestionAdapter { city ->
@@ -97,7 +109,6 @@ class WeatherListFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = cityWeatherAdapter
         }
-
     }
 
     fun setupSearch(){
@@ -143,8 +154,6 @@ class WeatherListFragment : Fragment() {
                     binding.rvSearchCityList.visibility = View.VISIBLE
 //                    binding.rvSearchCityList.visibility =
 //                        if(cities.isNotEmpty()) View.GONE else View.VISIBLE
-
-
                 }
             }
         }
@@ -171,5 +180,37 @@ class WeatherListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupSwipeToDelete() {
+        val swipeCallback =
+            object : ItemTouchHelper.SimpleCallback(
+                0,
+                ItemTouchHelper.LEFT
+            ) {
+
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    return false
+                }
+
+                override fun onSwiped(
+                    viewHolder: RecyclerView.ViewHolder,
+                    direction: Int
+                ) {
+                    val position = viewHolder.bindingAdapterPosition
+
+                    if (position != RecyclerView.NO_POSITION) {
+                        val city = cityWeatherAdapter.getCityAt(position)
+                        viewModel.deleteCity(city)
+                    }
+                }
+            }
+
+        ItemTouchHelper(swipeCallback)
+            .attachToRecyclerView(binding.rvSearchCityWeather)
     }
 }

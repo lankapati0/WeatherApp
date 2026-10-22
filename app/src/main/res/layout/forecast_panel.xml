@@ -145,7 +145,6 @@
                    <TextView
                        android:layout_width="wrap_content"
                        android:layout_height="wrap_content"
-                       android:text="3-Low Health Risk"
                         android:layout_below="@id/ivAirQuality"
                        android:gravity="center"
                        android:textColor="@android:color/white"
@@ -236,7 +235,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="4"
                             android:textSize="30sp"
                             android:layout_marginTop="5dp"
                             android:layout_marginStart="20dp"
@@ -246,7 +244,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Moderate"
                             android:id="@+id/tvUVIndexDetail"
                             android:textSize="18sp"
                             android:layout_marginTop="2dp"
@@ -300,7 +297,6 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="5:28AM"
                         android:textSize="30sp"
                         android:layout_marginTop="5dp"
                         android:layout_marginStart="20dp"
@@ -319,7 +315,6 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Sunset: 7:25PM"
                         android:textColor="@android:color/white"
                         android:id="@+id/tvSunsettime"
                         android:layout_marginStart="10dp"

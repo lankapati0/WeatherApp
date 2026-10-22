@@ -39,6 +39,10 @@ class CityWeatherAdapter(
         notifyDataSetChanged()
     }
 
+    fun getCityAt(position: Int): CityWeather {
+        return cities[position]
+    }
+
     class ViewHolder(
         private val binding: ItemSearchCityBinding,
         private val onCityClick: (CityWeather) -> Unit

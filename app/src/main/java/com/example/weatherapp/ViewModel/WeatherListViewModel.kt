@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class WeatherListViewModel(
@@ -33,7 +34,8 @@ class WeatherListViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
     private var searchJob: Job? = null
-
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _selectedCitiesWeather =
         MutableStateFlow<List<CityWeather>>(emptyList())
@@ -43,10 +45,11 @@ class WeatherListViewModel(
 
     private val _loadingWeatherCities =
         MutableStateFlow<Set<String>>(emptySet())
-    fun searchCities(query:String){
+
+    fun searchCities(query: String) {
         searchJob?.cancel()
 
-        if(query.trim().length<2){
+        if (query.trim().length < 2) {
             _cities.value = emptyList()
             _isLoading.value = false
             _error.value = null
@@ -61,8 +64,8 @@ class WeatherListViewModel(
             try {
                 val response = geocodingApi.searchCity(cityName = query.trim())
                 _cities.value = response.results.orEmpty()
-            } catch (e: Exception){
-                if(e is CancellationException) throw e
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _cities.value = emptyList()
                 _error.value = "Unable to search cities. Please try again."
             } finally {
@@ -71,42 +74,49 @@ class WeatherListViewModel(
         }
     }
 
-    fun saveCity(city: CityWeather){
+    fun saveCity(city: CityWeather) {
         viewModelScope.launch {
             savedCityRepository.saveCity(
-                SavedCity(city.cityName,city.latitude,city.longitude)
+                SavedCity(city.cityName, city.latitude, city.longitude)
             )
         }
     }
 
-    fun loadSelectedCityWeather(cityName: String,latitude: Double,longitude: Double){
+    fun loadSelectedCityWeather(cityName: String, latitude: Double, longitude: Double) {
 
         viewModelScope.launch {
             val cityKey = "$latitude,$longitude"
 
-
             if (_selectedCitiesWeather.value.any {
-                it.latitude == latitude &&
-                it.longitude == longitude
-            } || cityKey in _loadingWeatherCities.value) {
+                    it.latitude == latitude &&
+                            it.longitude == longitude
+                } || cityKey in _loadingWeatherCities.value) {
                 return@launch
             }
 
             _loadingWeatherCities.value = _loadingWeatherCities.value + cityKey
 
             try {
-                val response = RetrofitClient.weatherApi.getCurrentWeather(
-                    latitude,longitude
-                )
+                // fetch fresh weather data
+                val response = RetrofitClient.weatherApi.getCurrentWeather(latitude, longitude)
 
-                val cityWeather = CityWeather(cityName,latitude,longitude,response)
+                val cityWeather = CityWeather(cityName, latitude, longitude, response)
                 _selectedCitiesWeather.value += cityWeather
 
-                savedCityRepository.saveCity(SavedCity(cityName,latitude,longitude))
-            }catch (e: CancellationException){
+                // Add the card only if it isn't already present.
+                if (_selectedCitiesWeather.value.none {
+                        it.latitude == latitude &&
+                                it.longitude == longitude
+                    }
+                ) {
+                    _selectedCitiesWeather.value = _selectedCitiesWeather.value + cityWeather
+                    savedCityRepository.saveCity(SavedCity(cityName, latitude, longitude))
+                }
+
+            } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception){
-                _error.value =  "Unable to load weather for $cityName."
+            } catch (e: Exception) {
+                _error.value = "Unable to load weather for $cityName."
             } finally {
                 _loadingWeatherCities.value =
                     _loadingWeatherCities.value - cityKey
@@ -114,20 +124,87 @@ class WeatherListViewModel(
             }
         }
     }
-    fun clearSearch(){
+
+    fun clearSearch() {
         searchJob?.cancel()
         _cities.value = emptyList()
         _isLoading.value = false
         _error.value = null
     }
 
-    init {
+    fun deleteCity(city: CityWeather) {
         viewModelScope.launch {
-            val cities = savedCities.first()
-            cities.forEach { city ->
-                loadSelectedCityWeather(cityName = city.cityName,city.latitude,city.longitude)
+            // Delete the city from Room.
+            savedCityRepository.deleteCity(
+                latitude = city.latitude,
+                longitude = city.longitude
+            )
+            // Remove it from the displayed list.
+            _selectedCitiesWeather.update { cities ->
+                cities.filterNot {
+                    it.latitude == city.latitude &&
+                            it.longitude == city.longitude
+                }
             }
         }
     }
 
+    init {
+        viewModelScope.launch {
+            val cities = savedCities.first()
+            cities.forEach { city ->
+                loadSelectedCityWeather(cityName = city.cityName, city.latitude, city.longitude)
+            }
+        }
+    }
+
+
+    fun refreshCitiesWeather() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+
+            try {
+                val savedCities = savedCityRepository.getAllCities().first()
+
+                for (city in savedCities) {
+                    try {
+                        val response = RetrofitClient.weatherApi.getCurrentWeather(
+                            city.latitude,
+                            city.longitude
+                        )
+
+                        val updatedCity = CityWeather(
+                            city.cityName,
+                            city.latitude,
+                            city.longitude,
+                            response
+                        )
+
+                        _selectedCitiesWeather.value =
+                            _selectedCitiesWeather.value.map { existing ->
+                                if (
+                                    existing.latitude == city.latitude &&
+                                    existing.longitude == city.longitude
+                                ) {
+                                    updatedCity
+                                } else {
+                                    existing
+                                }
+                            }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _error.value =
+                            "Unable to refresh weather for ${city.cityName}."
+                    }
+                }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+
 }
+
+

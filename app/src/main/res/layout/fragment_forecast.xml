@@ -26,7 +26,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:textSize="16sp"
         android:id="@+id/tvForecastCity"
-        android:text="Vadodadara"
         android:textColor="#D0D0D0"/>
 
     <TextView
