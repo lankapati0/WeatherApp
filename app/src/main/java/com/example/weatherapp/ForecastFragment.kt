@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.ViewModel.WeatherViewModel
 import com.example.weatherapp.databinding.FragmentForecastBinding
 import com.example.weatherapp.ui.adapter.ForecastCardAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ForecastFragment: Fragment() {
 
     private var _binding: FragmentForecastBinding? = null

@@ -22,7 +22,6 @@ import androidx.navigation.findNavController
 import com.example.weatherapp.ViewModel.WeatherViewModel
 import com.example.weatherapp.data.Room.SelectedLocation
 import com.example.weatherapp.data.Room.SelectedLocationRepository
-import com.example.weatherapp.data.Room.WeatherDatabase
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.databinding.BottomNavigationBinding
 import com.google.android.gms.common.api.ResolvableApiException
@@ -31,22 +30,23 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: WeatherViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
     private lateinit var bottomBinding: BottomNavigationBinding
 
-    private val selectedLocationRepository by lazy {
-        val database = WeatherDatabase.getDatabase(applicationContext)
-        SelectedLocationRepository(database.selectedLocationDao())
-    }
+    @Inject
+    lateinit var selectedLocationRepository: SelectedLocationRepository
 
     @RequiresApi(Build.VERSION_CODES.O)
     private val locationPermissionLauncher =

@@ -1,8 +1,9 @@
 package com.example.weatherapp.data.Room
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class SavedCityRepository(
+class SavedCityRepository @Inject constructor(
     private val savedCityDao: SavedCityDao
 ) {
     fun getAllCities(): Flow<List<SavedCity>>{
@@ -18,7 +19,7 @@ class SavedCityRepository(
     }
 }
 
-class SelectedLocationRepository(
+class SelectedLocationRepository @Inject constructor(
     private val selectedLocationDao: SelectedLocationDao
 ){
     fun getSelectedLocation(): Flow<SelectedLocation?>{
@@ -28,5 +29,4 @@ class SelectedLocationRepository(
     suspend fun saveSelectedLocation(location: SelectedLocation){
         selectedLocationDao.saveSelectedLocation(location)
     }
-
 }

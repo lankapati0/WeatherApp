@@ -1,5 +1,7 @@
 package com.example.weatherapp
 
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -17,30 +19,19 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.ViewModel.WeatherListViewModel
-import com.example.weatherapp.ViewModel.WeatherListViewModelFactory
-import com.example.weatherapp.data.CityWeather
-import com.example.weatherapp.data.RetrofitClient
-import com.example.weatherapp.data.Room.SavedCityRepository
-import com.example.weatherapp.data.Room.WeatherDatabase
 import com.example.weatherapp.databinding.FragmentWeatherListBinding
 import com.example.weatherapp.ui.adapter.CitySuggestionAdapter
 import com.example.weatherapp.ui.adapter.CityWeatherAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-
+@AndroidEntryPoint
 class WeatherListFragment : Fragment() {
 
     private var _binding: FragmentWeatherListBinding? = null
     private lateinit var searchCityAdapter: CitySuggestionAdapter
     private val binding get() = _binding!!
     private lateinit var cityWeatherAdapter: CityWeatherAdapter
-    private val viewModel: WeatherListViewModel by viewModels {
-        val database = WeatherDatabase.getDatabase(requireContext())
-
-        val repository = SavedCityRepository(database.savedCityDao())
-
-        WeatherListViewModelFactory(geocodingApi = RetrofitClient.geocodingApi,
-            savedCityRepository = repository)
-    }
+    private val viewModel: WeatherListViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -188,13 +179,65 @@ class WeatherListFragment : Fragment() {
                 0,
                 ItemTouchHelper.LEFT
             ) {
+                private val deletePaint = android.graphics.Paint().apply {
+                    color = android.graphics.Color.RED
+                    textSize = 42f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
+                }
+                private val backgroundPaint = android.graphics.Paint().apply {
+                    color = android.graphics.Color.rgb(220, 45, 55)
+                    isAntiAlias = true
+                }
 
                 override fun onMove(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder,
                     target: RecyclerView.ViewHolder
-                ): Boolean {
-                    return false
+                ): Boolean = false
+
+                override fun onChildDraw(
+                    c: Canvas,
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    dX: Float,
+                    dY: Float,
+                    actionState: Int,
+                    isCurrentlyActive: Boolean
+                ) {
+                    val itemView = viewHolder.itemView
+
+                    if (dX < 0) {
+
+                        val background = android.graphics.RectF(
+                            itemView.right + dX,
+                            itemView.top.toFloat(),
+                            itemView.right.toFloat(),
+                            itemView.bottom.toFloat()
+                        )
+
+                        c.drawRoundRect(background, 16f, 16f, backgroundPaint)
+
+                        val centerX = background.centerX()
+                        val centerY = background.centerY()
+
+                        c.drawText(
+                            "Delete",
+                            centerX,
+                            centerY + deletePaint.textSize / 3,
+                            deletePaint
+                        )
+                    }
+
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
                 }
 
                 override fun onSwiped(

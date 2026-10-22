@@ -27,19 +27,19 @@ import com.example.weatherapp.utils.AqiUtils
 import com.example.weatherapp.databinding.FragmentWeatherBinding
 import com.example.weatherapp.ui.adapter.ForecastCardAdapter
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WeatherFragment: Fragment() {
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
     private lateinit var hourlyAdapter: ForecastCardAdapter
     private lateinit var dailyAdapter: ForecastCardAdapter
     private val viewModel: WeatherViewModel by activityViewModels()
-    private val weatherViewModel: WeatherViewModel by activityViewModels()
-    private val selectedLocationRepository by lazy {
-        val database = WeatherDatabase.getDatabase(requireContext())
-        SelectedLocationRepository(database.selectedLocationDao())
-    }
+    @Inject
+    lateinit var selectedLocationRepository: SelectedLocationRepository
 
     override fun onCreateView(
         inflater: LayoutInflater,

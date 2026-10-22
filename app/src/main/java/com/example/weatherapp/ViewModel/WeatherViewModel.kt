@@ -10,16 +10,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.data.CurrentWeather
 import com.example.weatherapp.data.ForecastCardItem
-import com.example.weatherapp.data.GeocodingClient
+import com.example.weatherapp.data.GeocodingApiService
 import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.utils.WeatherUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import javax.inject.Inject
 
-class WeatherViewModel: ViewModel() {
-    private val repository = WeatherRepository()
+@HiltViewModel
+class WeatherViewModel @Inject constructor(
+    private val repository: WeatherRepository,
+    private val geocodingApi: GeocodingApiService): ViewModel() {
+
     private val _weather = MutableLiveData<CurrentWeather>()
 
     val weather: LiveData<CurrentWeather> = _weather
@@ -165,7 +167,7 @@ class WeatherViewModel: ViewModel() {
         viewModelScope.launch {
             _error.value = null
             try {
-                val response = GeocodingClient.api.searchCity(cityName.trim())
+                val response = geocodingApi.searchCity(cityName.trim())
 
                 val city = response.results?.firstOrNull()
                 if(city == null){
